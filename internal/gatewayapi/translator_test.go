@@ -902,16 +902,17 @@ func xdsWithoutEqual(a *ir.Xds) any {
 		FilterOrder        []egv1a1.FilterPosition
 		GlobalResources    *ir.GlobalResources
 	}{
-		ReadyListener:      a.ReadyListener,
-		AccessLog:          a.AccessLog,
-		Tracing:            a.Tracing,
-		Metrics:            a.Metrics,
-		HTTP:               a.HTTP,
-		TCP:                a.TCP,
-		UDP:                a.UDP,
-		EnvoyPatchPolicies: a.EnvoyPatchPolicies,
-		FilterOrder:        a.FilterOrder,
-		GlobalResources:    a.GlobalResources,
+		ReadyListener:           a.ReadyListener,
+		AccessLog:               a.AccessLog,
+		Tracing:                 a.Tracing,
+		Metrics:                 a.Metrics,
+		HTTP:                    a.HTTP,
+		TCP:                     a.TCP,
+		UDP:                     a.UDP,
+		EnvoyPatchPolicies:      a.EnvoyPatchPolicies,
+		FilterOrder:             a.FilterOrder,
+		GlobalResources:         a.GlobalResources,
+		ExtensionServerPolicies: a.ExtensionServerPolicies,
 	}
 
 	// Ensure we didn't drop an exported field.
