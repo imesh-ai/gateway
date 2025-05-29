@@ -110,7 +110,7 @@ func (h *XDSHook) PostTranslateModifyHook(clusters []*cluster.Cluster, secrets [
 	// Take all of the unstructured resources for the extension and package them into bytes
 	extensionPoliciesBytes, err := translateUnstructuredToUnstructuredBytes(extensionPolicies)
 	if err != nil {
-		return clusters, secrets, err
+		return nil, nil, err
 	}
 
 	ctx := context.Background()
