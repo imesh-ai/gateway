@@ -289,10 +289,7 @@ func TestTranslateXdsTranslateModify(t *testing.T) {
 		},
 	}
 
-	inputFile := filepath.Join("testdata", "in", "xds-ir", "extension-server-policy.yaml")
-	// require.NoError(t, err)
-
-	t.Run(inputFile, func(t *testing.T) {
+	t.Run("extension-server-policy", func(t *testing.T) {
 		cfg := testConfigs["extension-server-policy"]
 
 		extManager := egv1a1.ExtensionManager{
@@ -318,7 +315,27 @@ func TestTranslateXdsTranslateModify(t *testing.T) {
 			t.Fatalf("failed to create extension manager: %v", err)
 		}
 
-		x := requireXdsIRFromInputTestData(t, inputFile)
+		x := &ir.Xds{}
+		x.ExtensionServerPolicies = []*unstructured.Unstructured{
+			{
+				Object: map[string]any{
+					"apiVersion": "gateway.networking.k8s.io/v1",
+					"kind":       "ExampleExtPolicy",
+					"metadata": map[string]any{
+						"name":      "ext-server-policy-test",
+						"namespace": "test",
+					},
+					"spec": map[string]any{
+						"targetRef": map[string]any{
+							"group": "gateway.networking.k8s.io",
+							"kind":  "Gateway",
+							"name":  "test-gtw",
+						},
+						"data": "some data",
+					},
+				},
+			},
+		}
 		tr := &Translator{
 			ControllerNamespace: "envoy-gateway-system",
 			ExtensionManager:    &mgr,
