@@ -4094,9 +4094,9 @@ func (in *Xds) DeepCopyInto(out *Xds) {
 	}
 	if in.ExtensionServerPolicies != nil {
 		in, out := &in.ExtensionServerPolicies, &out.ExtensionServerPolicies
-		*out = make([]unstructured.Unstructured, len(*in))
+		*out = make([]*unstructured.Unstructured, len(*in))
 		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+			(*in)[i].DeepCopyInto((*out)[i])
 		}
 	}
 }
