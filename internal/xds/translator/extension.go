@@ -139,7 +139,7 @@ func processExtensionPostListenerHook(tCtx *types.ResourceVersionTable, xdsListe
 	return nil
 }
 
-func processExtensionPostTranslationHook(tCtx *types.ResourceVersionTable, em *extensionTypes.Manager, policies []unstructured.Unstructured) error {
+func processExtensionPostTranslationHook(tCtx *types.ResourceVersionTable, em *extensionTypes.Manager, policies []*unstructured.Unstructured) error {
 	// Do nothing unless there is an extension manager
 	if em == nil {
 		return nil

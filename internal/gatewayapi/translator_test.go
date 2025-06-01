@@ -902,7 +902,7 @@ func xdsWithoutEqual(a *ir.Xds) any {
 		EnvoyPatchPolicies      []*ir.EnvoyPatchPolicy
 		FilterOrder             []egv1a1.FilterPosition
 		GlobalResources         *ir.GlobalResources
-		ExtensionServerPolicies []unstructured.Unstructured
+		ExtensionServerPolicies []*unstructured.Unstructured
 	}{
 		ReadyListener:           a.ReadyListener,
 		AccessLog:               a.AccessLog,
