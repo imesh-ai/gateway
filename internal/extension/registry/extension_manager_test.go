@@ -35,6 +35,7 @@ import (
 
 	egv1a1 "github.com/envoyproxy/gateway/api/v1alpha1"
 	"github.com/envoyproxy/gateway/internal/envoygateway"
+	"github.com/envoyproxy/gateway/internal/ir"
 	"github.com/envoyproxy/gateway/proto/extension"
 )
 
@@ -557,12 +558,12 @@ type clusterUpdateTestServer struct {
 func getTargetRefKind(obj *unstructured.Unstructured) (string, error) {
 	targetRef, found, err := unstructured.NestedMap(obj.Object, "spec", "targetRef")
 	if err != nil || !found {
-		return "", fmt.Errorf("targetRef not found or error: %v", err)
+		return "", errors.New("targetRef not found or error")
 	}
 
 	kind, ok := targetRef["kind"].(string)
 	if !ok {
-		return "", fmt.Errorf("kind is not a string or missing in targetRef")
+		return "", errors.New("kind is not a string or missing in targetRef")
 	}
 
 	return kind, nil
@@ -577,7 +578,7 @@ func (s *clusterUpdateTestServer) PostTranslateModify(ctx context.Context, req *
 		}, errors.New("No clusters found")
 	}
 
-	if len(req.PostTranslateContext.ExtensionResources) <= 0 {
+	if len(req.PostTranslateContext.ExtensionResources) == 0 {
 		return &extension.PostTranslateModifyResponse{
 			Clusters: clusters,
 			Secrets:  req.GetSecrets(),
@@ -602,11 +603,6 @@ func (s *clusterUpdateTestServer) PostTranslateModify(ctx context.Context, req *
 		}
 	}
 
-	// Iterate through all clusters to find correct one
-	// for _, cluster := range clusters {
-	// 	cluster.TransportSocket.Name = "set-by-ext-server"
-	// }
-
 	ret := &extension.PostTranslateModifyResponse{
 		Clusters: clusters,
 		Secrets:  req.GetSecrets(),
@@ -616,30 +612,31 @@ func (s *clusterUpdateTestServer) PostTranslateModify(ctx context.Context, req *
 }
 
 func Test_Integration_ClusterUpdateExtensionServer(t *testing.T) {
-
 	testCases := []struct {
 		name              string
-		extensionPolicies []*unstructured.Unstructured
+		extensionPolicies []*ir.UnstructuredRef
 		errorExpected     bool
 	}{
 		{
 			name: "valid extension policy with targetRef",
-			extensionPolicies: []*unstructured.Unstructured{
+			extensionPolicies: []*ir.UnstructuredRef{
 				{
-					Object: map[string]any{
-						"apiVersion": "gateway.example.io/v1",
-						"kind":       "ExampleExtPolicy",
-						"metadata": map[string]any{
-							"name":      "test",
-							"namespace": "test",
-						},
-						"spec": map[string]any{
-							"targetRef": map[string]any{
-								"group": "gateway.networking.k8s.io",
-								"kind":  "Gateway",
-								"name":  "test",
+					Object: &unstructured.Unstructured{
+						Object: map[string]any{
+							"apiVersion": "gateway.example.io/v1",
+							"kind":       "ExampleExtPolicy",
+							"metadata": map[string]any{
+								"name":      "test",
+								"namespace": "test",
 							},
-							"data": "some data",
+							"spec": map[string]any{
+								"targetRef": map[string]any{
+									"group": "gateway.networking.k8s.io",
+									"kind":  "Gateway",
+									"name":  "test",
+								},
+								"data": "some data",
+							},
 						},
 					},
 				},
@@ -649,17 +646,19 @@ func Test_Integration_ClusterUpdateExtensionServer(t *testing.T) {
 
 		{
 			name: "invalid extension policy - no target",
-			extensionPolicies: []*unstructured.Unstructured{
+			extensionPolicies: []*ir.UnstructuredRef{
 				{
-					Object: map[string]any{
-						"apiVersion": "gateway.example.io/v1alpha1",
-						"kind":       "ExampleExtPolicy",
-						"metadata": map[string]any{
-							"name":      "test",
-							"namespace": "test",
-						},
-						"spec": map[string]any{
-							"data": "some data",
+					Object: &unstructured.Unstructured{
+						Object: map[string]any{
+							"apiVersion": "gateway.example.io/v1alpha1",
+							"kind":       "ExampleExtPolicy",
+							"metadata": map[string]any{
+								"name":      "test",
+								"namespace": "test",
+							},
+							"spec": map[string]any{
+								"data": "some data",
+							},
 						},
 					},
 				},
@@ -668,14 +667,16 @@ func Test_Integration_ClusterUpdateExtensionServer(t *testing.T) {
 		},
 		{
 			name: "invalid extension policy - no spec",
-			extensionPolicies: []*unstructured.Unstructured{
+			extensionPolicies: []*ir.UnstructuredRef{
 				{
-					Object: map[string]any{
-						"apiVersion": "gateway.example.io/v1alpha1",
-						"kind":       "ExampleExtPolicy",
-						"metadata": map[string]any{
-							"name":      "test",
-							"namespace": "test",
+					Object: &unstructured.Unstructured{
+						Object: map[string]any{
+							"apiVersion": "gateway.example.io/v1alpha1",
+							"kind":       "ExampleExtPolicy",
+							"metadata": map[string]any{
+								"name":      "test",
+								"namespace": "test",
+							},
 						},
 					},
 				},

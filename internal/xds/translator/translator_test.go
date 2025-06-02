@@ -9,7 +9,6 @@ import (
 	"context"
 	"embed"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -229,12 +228,12 @@ type clusterUpdateTestServer struct {
 func getTargetRefKind(obj *unstructured.Unstructured) (string, error) {
 	targetRef, found, err := unstructured.NestedMap(obj.Object, "spec", "targetRef")
 	if err != nil || !found {
-		return "", fmt.Errorf("targetRef not found or error: %v", err)
+		return "", errors.New("targetRef not found or error")
 	}
 
 	kind, ok := targetRef["kind"].(string)
 	if !ok {
-		return "", fmt.Errorf("kind is not a string or missing in targetRef")
+		return "", errors.New("kind is not a string or missing in targetRef")
 	}
 
 	return kind, nil
@@ -249,7 +248,7 @@ func (s *clusterUpdateTestServer) PostTranslateModify(ctx context.Context, req *
 		}, errors.New("No clusters found")
 	}
 
-	if len(req.PostTranslateContext.ExtensionResources) <= 0 {
+	if len(req.PostTranslateContext.ExtensionResources) == 0 {
 		return &extension.PostTranslateModifyResponse{
 			Clusters: clusters,
 			Secrets:  req.GetSecrets(),
@@ -316,22 +315,24 @@ func TestTranslateXdsTranslateModify(t *testing.T) {
 		}
 
 		x := &ir.Xds{}
-		x.ExtensionServerPolicies = []*unstructured.Unstructured{
+		x.ExtensionServerPolicies = []*ir.UnstructuredRef{
 			{
-				Object: map[string]any{
-					"apiVersion": "gateway.networking.k8s.io/v1",
-					"kind":       "ExampleExtPolicy",
-					"metadata": map[string]any{
-						"name":      "ext-server-policy-test",
-						"namespace": "test",
-					},
-					"spec": map[string]any{
-						"targetRef": map[string]any{
-							"group": "gateway.networking.k8s.io",
-							"kind":  "Gateway",
-							"name":  "test-gtw",
+				Object: &unstructured.Unstructured{
+					Object: map[string]any{
+						"apiVersion": "gateway.networking.k8s.io/v1",
+						"kind":       "ExampleExtPolicy",
+						"metadata": map[string]any{
+							"name":      "ext-server-policy-test",
+							"namespace": "test",
 						},
-						"data": "some data",
+						"spec": map[string]any{
+							"targetRef": map[string]any{
+								"group": "gateway.networking.k8s.io",
+								"kind":  "Gateway",
+								"name":  "test-gtw",
+							},
+							"data": "some data",
+						},
 					},
 				},
 			},
@@ -346,7 +347,6 @@ func TestTranslateXdsTranslateModify(t *testing.T) {
 			require.Contains(t, err.Error(), cfg.errMsg)
 			return
 		}
-
 	})
 }
 
