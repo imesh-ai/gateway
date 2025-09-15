@@ -68,6 +68,13 @@ func (t *Translator) ProcessExtensionServerPolicies(policies []unstructured.Unst
 				continue
 			}
 
+			// Append policy extension server policy list for related gateway.
+			gatewayKey := t.getIRKey(gateway.Gateway)
+			unstructuredPolicy := &ir.UnstructuredRef{
+				Object: policy,
+			}
+			xdsIR[gatewayKey].ExtensionServerPolicies = append(xdsIR[gatewayKey].ExtensionServerPolicies, unstructuredPolicy)
+
 			// Set conditions for translation if it got any
 			if t.translateExtServerPolicyForGateway(policy, gateway, currTarget, xdsIR) {
 				// Set Accepted condition if it is unset
